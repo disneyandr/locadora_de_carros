@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Storage;
 use App\Models\Marca;
 use Illuminate\Http\Request;
 
@@ -86,7 +87,7 @@ class MarcaController extends Controller
          * adicionando um campo
          * _method com valor put
          * pois do lado do laravel os verbos put e patch, não trabalham com form-data
-         * 
+         *
          */
 
         $marca = $this->marca->find($id);
@@ -107,6 +108,11 @@ class MarcaController extends Controller
         } else {
 
             $request->validate($marca->regras(), $marca->feedback());
+        }
+
+        //remove o arquivo antivo casoum novo tenha sido enviado
+        if ($request->file('imagem')) {
+            Storage::disk('public')->delete($marca->imagem);
         }
 
         $image = $request->file('imagem');
@@ -131,6 +137,10 @@ class MarcaController extends Controller
         if ($marca === null) {
             return response()->json(['erro' => 'Impossível realizar a exclusão. O recurso solicitado não existe.'], 404);
         }
+        //remove o arquivo antigo
+
+        Storage::disk('public')->delete($marca->imagem);
+
         $marca->delete();
         // print_r($marca->getAttributes()); //dados atuais
         return response()->json(['msg' => 'Marca removida com sucesso!'], 200);
