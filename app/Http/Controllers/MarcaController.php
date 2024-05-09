@@ -7,7 +7,8 @@ use Illuminate\Http\Request;
 
 class MarcaController extends Controller
 {
-    public function __construct(Marca $marca){
+    public function __construct(Marca $marca)
+    {
         $this->marca = $marca;
     }
     /**
@@ -18,7 +19,7 @@ class MarcaController extends Controller
         //
         // $marcas = Marca::all();
         $marcas = $this->marca->all();
-        return response()->json($marcas,200);
+        return response()->json($marcas, 200);
     }
 
     /**
@@ -37,17 +38,17 @@ class MarcaController extends Controller
 
         $request->validate($this->marca->regras(), $this->marca->feedback());
 
-       $image = $request->file('imagem');
-       $imagem_urn = $image->store('image_path','public');
+        $image = $request->file('imagem');
+        $imagem_urn = $image->store('image_path', 'public');
 
         $marca = $this->marca->create(
             [
-                'nome'=>$request->nome,
-                'imagem'=>$imagem_urn,
+                'nome' => $request->nome,
+                'imagem' => $imagem_urn,
             ]
         );
 
-        return response()->json($marca,201);
+        return response()->json($marca, 201);
     }
 
     /**
@@ -59,10 +60,10 @@ class MarcaController extends Controller
     {
         //
         $marca = $this->marca->find($id);
-        if($marca === null){
-            return response()->json(['erro' => 'Recurso pesquisado não existe'],404);
+        if ($marca === null) {
+            return response()->json(['erro' => 'Recurso pesquisado não existe'], 404);
         }
-        return response()->json($marca,200);
+        return response()->json($marca, 200);
     }
 
     /**
@@ -80,26 +81,42 @@ class MarcaController extends Controller
      */
     public function update(Request $request, $id)
     {
+        /**Obs.:
+         * a atualização usará o verbo POST quando usar form-data
+         * adicionando um campo
+         * _method com valor put
+         * pois do lado do laravel os verbos put e patch, não trabalham com form-data
+         * 
+         */
 
         $marca = $this->marca->find($id);
-        if($marca === null){
-            return response()->json(['erro' => 'Impossível realizar a atualização. O recurso solicitado não existe.'],404);
+
+        // dd($request->nome);
+        if ($marca === null) {
+            return response()->json(['erro' => 'Impossível realizar a atualização. O recurso solicitado não existe.'], 404);
         }
 
-        if($request->method() === 'PATCH'){
+        if ($request->method() === 'PATCH') {
             $regrasDinamicas = array();
-            foreach($marca->regras() as $input => $regra){
-                if(array_key_exists($input,$request->all())){
+            foreach ($marca->regras() as $input => $regra) {
+                if (array_key_exists($input, $request->all())) {
                     $regrasDinamicas[$input] = $regra;
                 }
             }
             $request->validate($regrasDinamicas, $marca->feedback());
-        }else{
+        } else {
 
             $request->validate($marca->regras(), $marca->feedback());
         }
-        $marca->update($request->all());
-        return response()->json($marca,200);
+
+        $image = $request->file('imagem');
+        $imagem_urn = $image->store('image_path', 'public');
+
+        $marca->update([
+            'nome' => $request->nome,
+            'imagem' => $imagem_urn,
+        ]);
+        return response()->json($marca, 200);
     }
 
     /**
@@ -111,11 +128,11 @@ class MarcaController extends Controller
     {
         //
         $marca = $this->marca->find($id);
-        if($marca === null){
-            return response()->json(['erro' => 'Impossível realizar a exclusão. O recurso solicitado não existe.'],404);
+        if ($marca === null) {
+            return response()->json(['erro' => 'Impossível realizar a exclusão. O recurso solicitado não existe.'], 404);
         }
         $marca->delete();
         // print_r($marca->getAttributes()); //dados atuais
-        return response()->json(['msg'=>'Marca removida com sucesso!'],200);
+        return response()->json(['msg' => 'Marca removida com sucesso!'], 200);
     }
 }
