@@ -34,12 +34,19 @@ class MarcaController extends Controller
      */
     public function store(Request $request)
     {
-        //
-        // $marca = Marca::create($request->all());
-        // dd($marca);
 
         $request->validate($this->marca->regras(), $this->marca->feedback());
-        $marca = $this->marca->create($request->all());
+
+       $image = $request->file('imagem');
+       $imagem_urn = $image->store('image_path','public');
+
+        $marca = $this->marca->create(
+            [
+                'nome'=>$request->nome,
+                'imagem'=>$imagem_urn,
+            ]
+        );
+
         return response()->json($marca,201);
     }
 
@@ -78,7 +85,7 @@ class MarcaController extends Controller
         if($marca === null){
             return response()->json(['erro' => 'Impossível realizar a atualização. O recurso solicitado não existe.'],404);
         }
-       
+
         if($request->method() === 'PATCH'){
             $regrasDinamicas = array();
             foreach($marca->regras() as $input => $regra){
